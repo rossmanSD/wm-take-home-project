@@ -14,10 +14,14 @@ I decided to use Jetpack Compose because I've been primarily using it for my rec
 projects, and the `LazyColumn` makes displaying a large list of data a lot simpler than the 
 legacy RecyclerView, which can be difficult to deal with programmatically.
 
+While not expressly required to display each country's flag, I found that it made the app more
+visually appealing to do so. The Coil image loading library made it simple to fetch flag images from
+an http endpoint. Note that the flag URLs contained in the original JSON data did not seem to be valid.
+
 I also used the Koin dependency injection library, which is very straightforward and makes it very
 low lift to add dependency injection in simple Android projects.
 
-Http calls are accomplished using Ktor. Json is unmarshalled to Kotlin objects using the GSON
+Http calls are accomplished using Ktor. JSON is unmarshalled to Kotlin objects using the GSON
 library mostly because I was famailiar with it and Ktor provided a GSON plugin.
 
 # Testing
