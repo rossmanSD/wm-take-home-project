@@ -1,6 +1,11 @@
 package net.rossmanges.wmtakehome
 
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -24,6 +29,49 @@ class MainActivity : ComponentActivity() {
                     countryViewModel.updateFilter(filterText)
                 }
             }
+        }
+        registerForNetworkConnectivityCallbacks()
+    }
+
+    /**
+     * Register for network connectivity callbacks
+     */
+    private fun registerForNetworkConnectivityCallbacks() {
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+
+        val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
+        connectivityManager.requestNetwork(networkRequest, networkCallback)
+    }
+
+    /**
+     * Callback object to handle network availability changes.
+     */
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            Log.d("network", "onAvailable()")
+        }
+
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            super.onCapabilitiesChanged(network, networkCapabilities)
+            val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            val hasValidatedInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            val hasUnmeteredInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+            Log.v(
+                "network",
+                "onCapabilitiesChanged() hasInternet=$hasInternet, hasValidatedInternet=$hasValidatedInternet, hasUnmeteredInternet=$hasUnmeteredInternet"
+            )
+            // attempt to reload country data if the original fetch was unsuccessful
+            if (hasValidatedInternet && countryViewModel.countries.value.isEmpty()) {
+                countryViewModel.loadCountries()
+            }
+        }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            Log.d("network", "onLost()")
         }
     }
 }

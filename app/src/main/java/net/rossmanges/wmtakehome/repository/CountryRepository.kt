@@ -15,17 +15,17 @@ import net.rossmanges.wmtakehome.data.CountryList
  */
 class CountryRepository() {
     private val url = "https://gist.githubusercontent.com/peymano-wmt/32dcb892b06648910ddd40406e37fdab/raw/db25946fd77c5873b0303b858e861ce724e0dcd0/countries.json"
-    private val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            gson()
-        }
-    }
 
     /**
      * Fetches predefined country data in json format from an http endpoint and uses
      * GSON to inflate the [CountryList] object.
      */
     suspend fun fetchCountryData(): CountryList? {
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                gson()
+            }
+        }
         Log.v("json", "fetchCountryData() invoked")
         return try {
             val response:String = client.get(url).body()
