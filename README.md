@@ -27,7 +27,7 @@ library mostly because I was famailiar with it and Ktor provided a GSON plugin.
 # Testing
 
 I did not implement any automated testing. I started to write a unit test for the CountryRepository
-leveraging Mockk to mock out the ktor http client, but I ran into some trouble successfully mocking
+leveraging Mockk to mock out the ktor http client, but I ran out of time to successfully mock
 the http client calls, so I abandoned it in the interest of getting this project completed. However,
 for a real project, I would definitely write a full set of unit and instrumentation 
 tests.
