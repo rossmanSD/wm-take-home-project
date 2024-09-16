@@ -46,14 +46,11 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Callback object to handle network availability changes.
+     * Callback object to handle network availability changes. Note, this is a candidate for
+     * extracting out of this Activity and into another part of the architecture to keep things
+     * clean.
      */
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
-            super.onAvailable(network)
-            Log.d("network", "onAvailable()")
-        }
-
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             super.onCapabilitiesChanged(network, networkCapabilities)
             val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -67,11 +64,6 @@ class MainActivity : ComponentActivity() {
             if (hasValidatedInternet && countryViewModel.countries.value.isEmpty()) {
                 countryViewModel.loadCountries()
             }
-        }
-
-        override fun onLost(network: Network) {
-            super.onLost(network)
-            Log.d("network", "onLost()")
         }
     }
 }
