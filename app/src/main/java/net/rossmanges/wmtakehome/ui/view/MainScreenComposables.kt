@@ -36,7 +36,7 @@ fun MainScreen(filteredCountries: List<Country>, onSearchTextChanged: (String) -
                 if (filteredCountries.isEmpty()) {
                     NoDataMessage()
                 } else {
-                    CountryList(countries = filteredCountries)
+                    CountryApp(countries = filteredCountries)
                 }
             }
         }
