@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import net.rossmanges.wmtakehome.R
 import net.rossmanges.wmtakehome.data.Country
@@ -66,7 +67,8 @@ fun CountryDetailCard(country: Country, onClick: (String) -> Unit) {
                         text = "Capital: ${country.capital}",
                         style = RossWmtTypography.bodyMedium
                     )
-                    val currencySymbol = if (country.currency.symbol == null) "" else ", (${country.currency.symbol})"
+                    val currencySymbol =
+                        if (country.currency.symbol == null) "" else ", (${country.currency.symbol})"
                     Text(
                         text = "${country.currency.name}$currencySymbol",
                         style = RossWmtTypography.bodyMedium
@@ -92,6 +94,21 @@ fun CountryDetailCard(country: Country, onClick: (String) -> Unit) {
                     error = painterResource(id = R.drawable.flag_error_placeholder)
                 )
             }
+
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://teuteuf-dashboard-assets.pages.dev/data/common/country-shapes/${country.code.lowercase()}.svg")
+                    .decoderFactory(SvgDecoder.Factory())
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "border map",
+                modifier = Modifier
+                    .width(300.dp)
+                    .align(Alignment.CenterHorizontally),
+                contentScale = ContentScale.Fit,
+                placeholder = painterResource(id = R.drawable.flag_placeholder),
+                error = painterResource(id = R.drawable.flag_error_placeholder)
+            )
         }
     }
 }
