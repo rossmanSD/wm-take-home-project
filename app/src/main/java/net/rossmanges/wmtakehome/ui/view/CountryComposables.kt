@@ -70,29 +70,7 @@ fun CountryCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 CountryAndCode(country, animatedVisibilityScope)
-
-                Row {
-                    CountryMetadata(country, animatedVisibilityScope)
-                    Spacer(Modifier.weight(1f))
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Country flag",
-                        modifier = Modifier
-                            .width(80.dp)
-                            .align(Alignment.Bottom)
-                            .clip(RoundedCornerShape(3.dp))
-                            .sharedElement(
-                                state = rememberSharedContentState(key = country.code),
-                                animatedVisibilityScope = animatedVisibilityScope
-                            ),
-                        contentScale = ContentScale.Fit,
-                        placeholder = painterResource(id = R.drawable.flag_placeholder),
-                        error = painterResource(id = R.drawable.flag_error_placeholder)
-                    )
-                }
+                Flag(country, animatedVisibilityScope)
             }
         }
     }
@@ -201,6 +179,35 @@ internal fun SharedTransitionScope.CountryMetadata(
             ),
             text = "${country.language.name}",
             style = RossWmtTypography.bodyMedium
+        )
+    }
+}
+
+@Composable
+internal fun SharedTransitionScope.Flag(
+    country: Country,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
+    Row {
+        CountryMetadata(country, animatedVisibilityScope)
+        Spacer(Modifier.weight(1f))
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
+                .crossfade(true)
+                .build(),
+            contentDescription = "Country flag",
+            modifier = Modifier
+                .width(80.dp)
+                .align(Alignment.Bottom)
+                .clip(RoundedCornerShape(3.dp))
+                .sharedElement(
+                    state = rememberSharedContentState(key = country.code),
+                    animatedVisibilityScope = animatedVisibilityScope
+                ),
+            contentScale = ContentScale.Fit,
+            placeholder = painterResource(id = R.drawable.flag_placeholder),
+            error = painterResource(id = R.drawable.flag_error_placeholder)
         )
     }
 }

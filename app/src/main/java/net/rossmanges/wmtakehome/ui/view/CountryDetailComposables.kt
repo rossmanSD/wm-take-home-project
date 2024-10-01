@@ -1,17 +1,20 @@
-@file:OptIn(ExperimentalSharedTransitionApi::class)
+@file:OptIn(ExperimentalSharedTransitionApi::class, ExperimentalSharedTransitionApi::class)
 
 package net.rossmanges.wmtakehome.ui.view
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -60,53 +62,67 @@ fun CountryDetailCard(
             ),
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                CountryAndCode(country, animatedVisibilityScope)
-
-                Row {
-                    CountryMetadata(country, animatedVisibilityScope)
-                    Spacer(Modifier.weight(1f))
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Country flag",
+            BoxWithConstraints {
+                Log.v("constraints", "maxWidth=$maxWidth")
+                if (maxWidth > 400.dp) {
+                    Row(
                         modifier = Modifier
-                            .width(80.dp)
-                            .align(Alignment.Bottom)
-                            .clip(RoundedCornerShape(3.dp))
-                            .sharedElement(
-                                state = rememberSharedContentState(key = country.code),
-                                animatedVisibilityScope = animatedVisibilityScope
-                            ),
-                        contentScale = ContentScale.Fit,
-                        placeholder = painterResource(id = R.drawable.flag_placeholder),
-                        error = painterResource(id = R.drawable.flag_error_placeholder)
-                    )
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CountryAndCode(country, animatedVisibilityScope)
+                            Flag(country, animatedVisibilityScope)
+                        }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CountryShape(country)
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CountryAndCode(country, animatedVisibilityScope)
+                        Flag(country, animatedVisibilityScope)
+                    }
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CountryShape(country)
+                    }
                 }
-            }
-            Box(modifier = Modifier.fillMaxSize()) {
-                AsyncImage(
-                    // note: lifted this country-shape endpoint from Wordle, need to find a replacement.
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data("https://teuteuf-dashboard-assets.pages.dev/data/common/country-shapes/${country.code.lowercase()}.svg")
-                        .decoderFactory(SvgDecoder.Factory())
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "border map",
-                    modifier = Modifier
-                        .width(300.dp)
-                        .align(Alignment.Center),
-                    contentScale = ContentScale.Fit,
-                    error = painterResource(id = R.drawable.flag_error_placeholder)
-                )
             }
         }
     }
+}
+
+@Composable
+fun CountryShape(country: Country) {
+    AsyncImage(
+        // note: lifted this country-shape endpoint from Wordle, need to find a replacement.
+        model = ImageRequest.Builder(LocalContext.current)
+            .data("https://teuteuf-dashboard-assets.pages.dev/data/common/country-shapes/${country.code.lowercase()}.svg")
+            .decoderFactory(SvgDecoder.Factory())
+            .crossfade(true)
+            .build(),
+        contentDescription = "border map",
+        modifier = Modifier
+            .width(300.dp),
+        contentScale = ContentScale.Fit,
+        error = painterResource(id = R.drawable.flag_error_placeholder)
+    )
 }
 
 
