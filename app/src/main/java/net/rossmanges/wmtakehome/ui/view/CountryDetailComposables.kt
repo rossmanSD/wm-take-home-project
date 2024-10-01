@@ -1,18 +1,23 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package net.rossmanges.wmtakehome.ui.view
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,89 +31,82 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import net.rossmanges.wmtakehome.R
 import net.rossmanges.wmtakehome.data.Country
-import net.rossmanges.wmtakehome.ui.theme.RossWmtTypography
 
 /**
- * A container for presenting data about a country in a pleasing format.
+ * A container for presenting detailed data about a country in a pleasing format.
  * @param   country The [Country] data class.
+ * @param   onClick The callback when the country detail called is tapped.
  */
 @Composable
-fun CountryDetailCard(country: Country, onClick: (String) -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onClick(country.code) },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+fun CountryDetailCard(
+    country: Country,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope,
+    onClick: (String) -> Unit
+) {
+    with(sharedTransitionScope) {
+        Card(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+                .sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = "card-${country.code}"),
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
+                .clickable { onClick(country.code) },
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(4.dp)
         ) {
-            Row {
-                Text(
-                    text = "${country.name}, ${country.region}",
-                    style = RossWmtTypography.headlineSmall
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    text = country.code,
-                    style = RossWmtTypography.headlineSmall
-                )
-            }
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CountryAndCode(country, animatedVisibilityScope)
 
-            Row {
-                Column {
-                    Text(
-                        text = "Capital: ${country.capital}",
-                        style = RossWmtTypography.bodyMedium
-                    )
-                    val currencySymbol =
-                        if (country.currency.symbol == null) "" else ", (${country.currency.symbol})"
-                    Text(
-                        text = "${country.currency.name}$currencySymbol",
-                        style = RossWmtTypography.bodyMedium
-                    )
-                    Text(
-                        text = "${country.language.name}",
-                        style = RossWmtTypography.bodyMedium
+                Row {
+                    CountryMetadata(country, animatedVisibilityScope)
+                    Spacer(Modifier.weight(1f))
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Country flag",
+                        modifier = Modifier
+                            .width(80.dp)
+                            .align(Alignment.Bottom)
+                            .clip(RoundedCornerShape(3.dp))
+                            .sharedElement(
+                                state = rememberSharedContentState(key = country.code),
+                                animatedVisibilityScope = animatedVisibilityScope
+                            ),
+                        contentScale = ContentScale.Fit,
+                        placeholder = painterResource(id = R.drawable.flag_placeholder),
+                        error = painterResource(id = R.drawable.flag_error_placeholder)
                     )
                 }
-                Spacer(Modifier.weight(1f))
+            }
+            Box(modifier = Modifier.fillMaxSize()) {
                 AsyncImage(
+                    // note: lifted this country-shape endpoint from Wordle, need to find a replacement.
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
+                        .data("https://teuteuf-dashboard-assets.pages.dev/data/common/country-shapes/${country.code.lowercase()}.svg")
+                        .decoderFactory(SvgDecoder.Factory())
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Country flag",
+                    contentDescription = "border map",
                     modifier = Modifier
-                        .width(80.dp)
-                        .align(Alignment.Bottom)
-                        .clip(RoundedCornerShape(3.dp)),
+                        .width(300.dp)
+                        .align(Alignment.Center),
                     contentScale = ContentScale.Fit,
-                    placeholder = painterResource(id = R.drawable.flag_placeholder),
                     error = painterResource(id = R.drawable.flag_error_placeholder)
                 )
             }
-
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://teuteuf-dashboard-assets.pages.dev/data/common/country-shapes/${country.code.lowercase()}.svg")
-                    .decoderFactory(SvgDecoder.Factory())
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "border map",
-                modifier = Modifier
-                    .width(300.dp)
-                    .align(Alignment.CenterHorizontally),
-                contentScale = ContentScale.Fit,
-                placeholder = painterResource(id = R.drawable.flag_placeholder),
-                error = painterResource(id = R.drawable.flag_error_placeholder)
-            )
         }
     }
 }
+
+
