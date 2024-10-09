@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -70,6 +73,8 @@ dependencies {
     implementation(libs.koin.android)
 
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
+
 
     implementation(libs.androidx.ui.text.google.fonts)
 
@@ -79,6 +84,15 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Jetpack Compose Navigation Integration
+    implementation(libs.androidx.navigation.compose)
+
+    // Navigation Views/Fragments Integration
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)

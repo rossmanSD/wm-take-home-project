@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val filteredCountries by countryViewModel.filteredCountries.collectAsState()
             RossWalmartTakehomeProjectTheme {
-                MainScreen(filteredCountries) { filterText ->
+                MainScreen(filteredCountries, countryViewModel.lazyListState) { filterText ->
                     countryViewModel.updateFilter(filterText)
                 }
             }

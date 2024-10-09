@@ -1,5 +1,8 @@
 package net.rossmanges.wmtakehome.ui.viewmodel
 
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +22,7 @@ import net.rossmanges.wmtakehome.repository.CountryRepository
 class CountryViewModel(private val repository: CountryRepository) : ViewModel() {
     private val _filterText = MutableStateFlow("")
     private val _countries = MutableStateFlow<List<Country>>(emptyList())
+    val lazyListState: LazyListState by mutableStateOf( LazyListState(0,0))
 
     /**
      * The unfiltered list of [Country] data.

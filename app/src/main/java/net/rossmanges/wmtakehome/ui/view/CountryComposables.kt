@@ -1,5 +1,11 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package net.rossmanges.wmtakehome.ui.view
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -31,69 +38,40 @@ import net.rossmanges.wmtakehome.data.Country
 import net.rossmanges.wmtakehome.domain.model.ListItem
 import net.rossmanges.wmtakehome.ui.theme.RossWmtTypography
 
+
 /**
  * A container for presenting data about a country in a pleasing format.
  * @param   country The [Country] data class.
  */
 @Composable
-fun CountryCard(country: Country) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+fun CountryCard(
+    country: Country,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope,
+    onClick: (String) -> Unit
+) {
+    with(sharedTransitionScope) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .sharedBounds(
+                    sharedContentState = rememberSharedContentState(key = "card-${country.code}"),
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
+                .clickable { onClick(country.code) },
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(4.dp)
         ) {
-            Row {
-                Text(
-                    text = "${country.name}, ${country.region}",
-                    style = RossWmtTypography.headlineSmall
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    text = country.code,
-                    style = RossWmtTypography.headlineSmall
-                )
-            }
-
-            Row {
-                Column {
-                    Text(
-                        text = "Capital: ${country.capital}",
-                        style = RossWmtTypography.bodyMedium
-                    )
-                    val currencySymbol = if (country.currency.symbol == null) "" else ", (${country.currency.symbol})"
-                    Text(
-                        text = "${country.currency.name}$currencySymbol",
-                        style = RossWmtTypography.bodyMedium
-                    )
-                    Text(
-                        text = "${country.language.name}",
-                        style = RossWmtTypography.bodyMedium
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Country flag",
-                    modifier = Modifier
-                        .width(80.dp)
-                        .align(Alignment.Bottom)
-                        .clip(RoundedCornerShape(3.dp)),
-                    contentScale = ContentScale.Fit,
-                    placeholder = painterResource(id = R.drawable.flag_placeholder),
-                    error = painterResource(id = R.drawable.flag_error_placeholder)
-                )
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CountryAndCode(country, animatedVisibilityScope)
+                Flag(country, animatedVisibilityScope)
             }
         }
     }
@@ -104,9 +82,16 @@ fun CountryCard(country: Country) {
  * @param listItems The list of [ListItem] data to use in the list.
  */
 @Composable
-fun ItemList(listItems: List<ListItem>) {
+fun ItemList(
+    listItems: List<ListItem>,
+    lazyListState: LazyListState,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope,
+    onClick: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = lazyListState,
     ) {
         items(listItems) { item ->
             when (item) {
@@ -119,9 +104,12 @@ fun ItemList(listItems: List<ListItem>) {
                         )
                     }
                 }
-
                 is ListItem.CountryListItem -> {
-                    CountryCard(country = item.country)
+                    CountryCard(
+                        country = item.country,
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        sharedTransitionScope = sharedTransitionScope,
+                    ) { onClick(it) }
                 }
             }
         }
@@ -143,6 +131,95 @@ fun NoDataMessage() {
             text = "No Data Available",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+internal fun SharedTransitionScope.CountryAndCode(
+    country: Country,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
+    Row {
+        Text(
+            modifier = Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState(key = "text-country-${country.code}"),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+            text = "${country.name}, ${country.region}",
+            style = RossWmtTypography.headlineSmall
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            modifier = Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState(key = "text-country-code-${country.code}"),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+            text = country.code,
+            style = RossWmtTypography.headlineSmall
+        )
+    }
+}
+
+@Composable
+internal fun SharedTransitionScope.CountryMetadata(
+    country: Country,
+    animatedVisibilityScope: AnimatedVisibilityScope) {
+    Column {
+        Text(
+            modifier = Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState(key = "text-country-cap-${country.code}"),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+            text = "Capital: ${country.capital}",
+            style = RossWmtTypography.bodyMedium
+        )
+        val currencySymbol =
+            if (country.currency.symbol == null) "" else ", (${country.currency.symbol})"
+        Text(
+            modifier = Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState(key = "text-country-currency-${country.code}"),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+            text = "${country.currency.name}$currencySymbol",
+            style = RossWmtTypography.bodyMedium
+        )
+        Text(
+            modifier = Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState(key = "text-country-language-${country.code}"),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+            text = "${country.language.name}",
+            style = RossWmtTypography.bodyMedium
+        )
+    }
+}
+
+@Composable
+internal fun SharedTransitionScope.Flag(
+    country: Country,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
+    Row {
+        CountryMetadata(country, animatedVisibilityScope)
+        Spacer(Modifier.weight(1f))
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data("https://flagcdn.com/w320/${country.code.lowercase()}.jpg")
+                .crossfade(true)
+                .build(),
+            contentDescription = "Country flag",
+            modifier = Modifier
+                .width(80.dp)
+                .align(Alignment.Bottom)
+                .clip(RoundedCornerShape(3.dp))
+                .sharedElement(
+                    state = rememberSharedContentState(key = country.code),
+                    animatedVisibilityScope = animatedVisibilityScope
+                ),
+            contentScale = ContentScale.Fit,
+            placeholder = painterResource(id = R.drawable.flag_placeholder),
+            error = painterResource(id = R.drawable.flag_error_placeholder)
         )
     }
 }
