@@ -19,6 +19,9 @@ class CountryRepository() {
     /**
      * Fetches predefined country data in json format from an http endpoint and uses
      * GSON to inflate the [CountryList] object.
+     *
+     * TODO - consider returning a Sealed class
+     * TODO - consider convert from GSON to Kotlin Serialization.
      */
     suspend fun fetchCountryData(): CountryList? {
         val client = HttpClient(CIO) {

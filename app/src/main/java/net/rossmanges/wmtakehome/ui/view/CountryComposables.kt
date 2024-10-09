@@ -23,14 +23,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import net.rossmanges.wmtakehome.R
 import net.rossmanges.wmtakehome.data.Country
-import net.rossmanges.wmtakehome.data.Currency
-import net.rossmanges.wmtakehome.data.Language
+import net.rossmanges.wmtakehome.domain.model.ListItem
 import net.rossmanges.wmtakehome.ui.theme.RossWmtTypography
 
 /**
@@ -102,16 +100,30 @@ fun CountryCard(country: Country) {
 }
 
 /**
- * A "lazy" column of [CountryCard]
- * @param countries The list of [Country] data to use in the list.
+ * A "lazy" column of [ListItem]
+ * @param listItems The list of [ListItem] data to use in the list.
  */
 @Composable
-fun CountryList(countries: List<Country>) {
+fun ItemList(listItems: List<ListItem>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
     ) {
-        items(countries) { country ->
-            CountryCard(country = country)
+        items(listItems) { item ->
+            when (item) {
+                is ListItem.HeaderListItem -> {
+                    Row {
+                        Text(
+                            text = "${item.letter}",
+                            style = RossWmtTypography.headlineLarge,
+                            modifier = Modifier.padding(start = 12.dp, top = 8.dp)
+                        )
+                    }
+                }
+
+                is ListItem.CountryListItem -> {
+                    CountryCard(country = item.country)
+                }
+            }
         }
     }
 }
@@ -135,42 +147,43 @@ fun NoDataMessage() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PreviewCountryCard() {
-    val sampleCountry = listOf(
-        Country(
-        capital = "Charlotte Amalie",
-        code = "VI",
-        currency = Currency(
-            code = "USD",
-            name = "United States dollar",
-            symbol = "$"
-        ),
-        flag = "https://restcountries.eu/data/vir.svg",
-        language = Language(
-            code = "en",
-            name = "English"
-        ),
-        name = "Virgin Islands (U.S.)",
-        region = "NA"
-    ),
-        Country(
-            capital = "Flying Fish Cove",
-            code = "CX",
-            currency = Currency(
-                code = "AUD",
-                name = "Australian dollar",
-                symbol = "$"
-            ),
-            flag = "https://restcountries.eu/data/cxr.svg",
-            language = Language(
-                code = "en",
-                name = "English"
-            ),
-            name = "Christmas Island",
-            region = "OC"
-        )
-    )
-    CountryList(countries = sampleCountry)
-}
+// TODO - fix the preview code
+//@Preview(showBackground = true)
+//@Composable
+//private fun PreviewCountryCard() {
+//    val sampleCountry = listOf(
+//        Country(
+//        capital = "Charlotte Amalie",
+//        code = "VI",
+//        currency = Currency(
+//            code = "USD",
+//            name = "United States dollar",
+//            symbol = "$"
+//        ),
+//        flag = "https://restcountries.eu/data/vir.svg",
+//        language = Language(
+//            code = "en",
+//            name = "English"
+//        ),
+//        name = "Virgin Islands (U.S.)",
+//        region = "NA"
+//    ),
+//        Country(
+//            capital = "Flying Fish Cove",
+//            code = "CX",
+//            currency = Currency(
+//                code = "AUD",
+//                name = "Australian dollar",
+//                symbol = "$"
+//            ),
+//            flag = "https://restcountries.eu/data/cxr.svg",
+//            language = Language(
+//                code = "en",
+//                name = "English"
+//            ),
+//            name = "Christmas Island",
+//            region = "OC"
+//        )
+//    )
+//    ItemList(listItems = sampleCountry)
+//}
