@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.rossmanges.wmtakehome.data.Country
+import net.rossmanges.wmtakehome.domain.model.ListItem
 import net.rossmanges.wmtakehome.repository.CountryRepository
 
 /**
@@ -26,26 +27,41 @@ class CountryViewModel(private val repository: CountryRepository) : ViewModel() 
     /**
      * The unfiltered list of [Country] data.
      */
-    val countries: StateFlow<List<Country>> = _countries
+    val countries: StateFlow<List<Country>>
+        get() = _countries
 
     /**
-     * Filtered list of [Country] data based on the filter text.
+     * Filtered list of countries based on the filter text. Provides data in the form of
+     * a List of [ListItem].
      */
-    val filteredCountries: StateFlow<List<Country>> =
+    val filteredCountries: StateFlow<List<ListItem>> =
         combine(_countries, _filterText) { countries, filter ->
             if (filter.isEmpty()) {
-                countries // No filter applied
+                getHeadersAndCountries(countries) // No filter applied
             } else {
-                countries.filter { country ->
-                    country.name.contains(filter, ignoreCase = true) ||
-                    country.region?.contains(filter, ignoreCase = true) ?: false ||
-                    country.code.contains(filter, ignoreCase = true)
-                }
+                getHeadersAndCountries(
+                    countries.filter { country ->
+                        country.name.contains(filter, ignoreCase = true) ||
+                                country.region?.contains(filter, ignoreCase = true) ?: false ||
+                                country.code.contains(filter, ignoreCase = true)
+                    })
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     init {
         loadCountries()
+    }
+
+    private fun getHeadersAndCountries(countries: List<Country>): List<ListItem> {
+        val headersAndCountries = mutableListOf<ListItem>()
+        val alphaGroup = countries.sortedBy { it.name }.groupBy { it.name.first() }
+        alphaGroup.entries.forEach { (header, countries) ->
+            headersAndCountries.add(ListItem.HeaderListItem(header))
+            headersAndCountries.addAll(countries.map { country ->
+                ListItem.CountryListItem(country)
+            })
+        }
+        return headersAndCountries
     }
 
     /**

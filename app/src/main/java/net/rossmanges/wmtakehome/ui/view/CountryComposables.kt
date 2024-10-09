@@ -35,6 +35,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import net.rossmanges.wmtakehome.R
 import net.rossmanges.wmtakehome.data.Country
+import net.rossmanges.wmtakehome.domain.model.ListItem
 import net.rossmanges.wmtakehome.ui.theme.RossWmtTypography
 
 
@@ -77,12 +78,12 @@ fun CountryCard(
 }
 
 /**
- * A "lazy" column of [CountryCard]
- * @param countries The list of [Country] data to use in the list.
+ * A "lazy" column of [ListItem]
+ * @param listItems The list of [ListItem] data to use in the list.
  */
 @Composable
-fun CountryList(
-    countries: List<Country>,
+fun ItemList(
+    listItems: List<ListItem>,
     lazyListState: LazyListState,
     animatedVisibilityScope: AnimatedVisibilityScope,
     sharedTransitionScope: SharedTransitionScope,
@@ -92,13 +93,24 @@ fun CountryList(
         modifier = Modifier.fillMaxSize(),
         state = lazyListState,
     ) {
-        items(countries) { country ->
-            CountryCard(
-                country = country,
-                animatedVisibilityScope = animatedVisibilityScope,
-                sharedTransitionScope = sharedTransitionScope
-            ) {
-                onClick(it)
+        items(listItems) { item ->
+            when (item) {
+                is ListItem.HeaderListItem -> {
+                    Row {
+                        Text(
+                            text = "${item.letter}",
+                            style = RossWmtTypography.headlineLarge,
+                            modifier = Modifier.padding(start = 12.dp, top = 8.dp)
+                        )
+                    }
+                }
+                is ListItem.CountryListItem -> {
+                    CountryCard(
+                        country = item.country,
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        sharedTransitionScope = sharedTransitionScope,
+                    ) { onClick(it) }
+                }
             }
         }
     }
@@ -212,6 +224,7 @@ internal fun SharedTransitionScope.Flag(
     }
 }
 
+// TODO - fix the preview code
 //@Preview(showBackground = true)
 //@Composable
 //private fun PreviewCountryCard() {
@@ -249,5 +262,5 @@ internal fun SharedTransitionScope.Flag(
 //            region = "OC"
 //        )
 //    )
-//    CountryList(countries = sampleCountry) { }
+//    ItemList(listItems = sampleCountry)
 //}

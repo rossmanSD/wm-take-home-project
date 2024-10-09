@@ -9,7 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
-import net.rossmanges.wmtakehome.data.Country
+import net.rossmanges.wmtakehome.domain.model.ListItem
 
 @Serializable
 sealed class Routes {
@@ -22,14 +22,14 @@ sealed class Routes {
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun CountryApp(countries: List<Country>, lazyListState: LazyListState) {
+fun CountryApp(listItems: List<ListItem>, lazyListState: LazyListState) {
     val navController = rememberNavController()
     SharedTransitionLayout {
         NavHost(navController = navController, startDestination = Routes.CountryList) {
             composable<Routes.CountryList> {
-                CountryList(
+                ItemList(
                     lazyListState = lazyListState,
-                    countries = countries,
+                    listItems = listItems,
                     animatedVisibilityScope = this@composable,
                     sharedTransitionScope = this@SharedTransitionLayout
                 ) {
@@ -38,10 +38,12 @@ fun CountryApp(countries: List<Country>, lazyListState: LazyListState) {
             }
             composable<Routes.CountryDetail> { backStackEntry ->
                 val countryCode = backStackEntry.toRoute<Routes.CountryDetail>().countryCode
-                val country = countries.firstOrNull { it.code == countryCode }
-                if (country != null) {
+                val countryItem = listItems
+                    .filterIsInstance<ListItem.CountryListItem>()
+                    .firstOrNull { it.country.code == countryCode }
+                if (countryItem != null) {
                     CountryDetailCard(
-                        country = country,
+                        country = countryItem.country,
                         animatedVisibilityScope = this@composable,
                         sharedTransitionScope = this@SharedTransitionLayout
                     ) {

@@ -9,14 +9,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import net.rossmanges.wmtakehome.data.Country
+import net.rossmanges.wmtakehome.domain.model.ListItem
 
 /**
  * The Composable function that describes the main scaffold and layout for this app.
  */
 @Composable
 fun MainScreen(
-    filteredCountries: List<Country>,
+    listItems: List<ListItem>,
     lazyListState: LazyListState,
     onSearchTextChanged: (String) -> Unit
 ) {
@@ -38,10 +38,10 @@ fun MainScreen(
                     .fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                if (filteredCountries.isEmpty()) {
+                if (listItems.isEmpty()) {
                     NoDataMessage()
                 } else {
-                    CountryApp(countries = filteredCountries, lazyListState = lazyListState)
+                    CountryApp(listItems = listItems, lazyListState = lazyListState)
                 }
             }
         }
